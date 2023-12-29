@@ -6,9 +6,9 @@ With this, every player will have your `/spawn` location
 
 # Permissions
 
-`amf.perplayerspawn.spawn`: can perform `/spawn` command, and back to spawn location
-`amf.perplayerspawn.spawn.set`: can perform `/spawn set` command, and set the current location as new spawn point
-`amf.perplayerspawn.spawn.new`: can perform `/spawn new` command, and search for new location as spawn point (nice replace for `/rtp` or `/wild`)
+- `amf.perplayerspawn.spawn`: can perform `/spawn` command, and back to spawn location
+- `amf.perplayerspawn.spawn.set`: can perform `/spawn set` command, and set the current location as new spawn point
+- `amf.perplayerspawn.spawn.new`: can perform `/spawn new` command, and search for new location as spawn point (nice replace for `/rtp` or `/wild`)
 
 # Compile
 
