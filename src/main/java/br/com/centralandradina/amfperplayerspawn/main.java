@@ -223,6 +223,8 @@ public class main extends JavaPlugin implements Listener
 	 */
 	public boolean newSpawn(Player player)
 	{
+		player.sendMessage("Finding new spawn location...");
+		
 		// get player location
 		Location location = newSpawnLocation(player.getWorld());
 		getLogger().info("Found location for " + player.getName() + " at " + location.getX() + ", " + location.getY() + ", " + location.getZ());
