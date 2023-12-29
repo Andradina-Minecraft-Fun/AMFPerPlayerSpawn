@@ -9,6 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -71,18 +72,8 @@ public class main extends JavaPlugin implements Listener
 			// get location
 			this.spawnLocation = new Location(location.getWorld(), location.getX()+0.5, location.getY()+0.5, location.getZ()+0.5);
 
-			// save the location for next 
-			FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-			config.set("spawn.world", player.getWorld().getName());
-			config.set("spawn.x", this.spawnLocation.getX());
-			config.set("spawn.y", this.spawnLocation.getY());
-			config.set("spawn.z", this.spawnLocation.getZ());
-			try {
-				config.save(configFile);
-			}
-			catch (IOException e) {
-				e.printStackTrace();
-			}
+			// save the location for next login
+			saveConfigFile(uuid, this.spawnLocation);
 
 			// teleport user to the new spaw
 			player.teleport(this.spawnLocation);
@@ -100,6 +91,28 @@ public class main extends JavaPlugin implements Listener
 
 		}
 
+	}
+
+	/**
+	 * save config file
+	 * @return
+	 */
+	public void saveConfigFile(UUID uuid, Location location)
+	{
+		File configFile = new File(this.getDataFolder(), uuid.toString() + ".yml");
+
+		// save the location for next 
+		FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+		config.set("spawn.world", location.getWorld().getName());
+		config.set("spawn.x", location.getX());
+		config.set("spawn.y", location.getY());
+		config.set("spawn.z", location.getZ());
+		try {
+			config.save(configFile);
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -126,11 +139,7 @@ public class main extends JavaPlugin implements Listener
 		while(posY >= 0)
 		{
 			// @todo verify if this place has protection (redprotection and griefprevent)
-
-			if(world.getBlockAt(posX, posY, posZ).getType() == Material.WATER) {
-				return newSpawnLocation(world);
-			}
-			else if(world.getBlockAt(posX, posY, posZ).getType() == Material.LAVA) {
+			if(world.getBlockAt(posX, posY, posZ).isLiquid()) {
 				return newSpawnLocation(world);
 			}
 			else if(world.getBlockAt(posX, posY, posZ).getType() != Material.AIR) {
@@ -178,10 +187,91 @@ public class main extends JavaPlugin implements Listener
 				player.teleport(this.spawnLocation);
     			return false;
     		}
+			else {
+				// verify if arg[0] is set
+				if(args[0].equals("set")) {
+					// verify permission
+					if(!sender.hasPermission("amf.perplayerspawn.spawn.set")) {
+						sender.sendMessage("You cannot to that!");
+						return false;
+					}
+					else {
+						setSpawn(player);
+					}
+				}
+
+				// verify if arg[0] is find
+				else if(args[0].equals("new")) {
+					// verify permission
+					if(!sender.hasPermission("amf.perplayerspawn.spawn.new")) {
+						sender.sendMessage("You cannot to that!");
+						return false;
+					}
+					else {
+						newSpawn(player);
+					}
+				}
+			}
 
 		}
 
 		return false;
+	}
+
+	/**
+	 * set new spawn point to the player
+	 */
+	public boolean newSpawn(Player player)
+	{
+		// get player location
+		Location location = newSpawnLocation(player.getWorld());
+		getLogger().info("Found location for " + player.getName() + " at " + location.getX() + ", " + location.getY() + ", " + location.getZ());
+		
+		// rewrite location to the middle of block
+		this.spawnLocation = new Location(location.getWorld(), ((int)location.getX())+0.5, ((int)location.getY())+0.5, ((int)location.getZ())+0.5);
+
+		// save config file with the new location
+		saveConfigFile(player.getUniqueId(), this.spawnLocation);
+
+		// teleport player
+		player.teleport(this.spawnLocation);
+		
+		// warning player
+		player.sendMessage("New spawn defined");
+
+		return true;
+	}
+
+	/**
+	 * set new spawn point to the player
+	 */
+	public boolean setSpawn(Player player)
+	{
+		// get player location
+		Location location = player.getLocation();
+		
+		Block playerblock = location.getBlock(); 
+		if(playerblock.isLiquid()) {
+			player.sendMessage("You need a safe place to spawn");
+			return false;
+		}
+
+		Block underblock = playerblock.getRelative(0, -1, 0);
+		if(underblock.isLiquid()) {
+			player.sendMessage("You need a safe place to spawn");
+			return false;
+		}
+
+		// rewrite location to the middle of block
+		this.spawnLocation = new Location(location.getWorld(), ((int)location.getX())+0.5, ((int)location.getY())+0.5, ((int)location.getZ())+0.5);
+
+		// save config file with the new location
+		saveConfigFile(player.getUniqueId(), this.spawnLocation);
+
+		// warning player
+		player.sendMessage("New spawn defined");
+
+		return true;
 	}
 
 }
