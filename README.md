@@ -20,9 +20,9 @@ mvn compile && mvn package
 
 # ToDo
 
-- [ ] test with essentials
-- [ ] test with AuthMe
-- [ ] test with FastLogin
+- [x] test with essentials
+- [x] test with AuthMe
+- [x] test with FastLogin
 - [ ] Translate messages
 - [ ] Prefix for messages
 - [ ] On find new spawn point location, verify if this location are protected by `RedProtect` or `GriefPrevention`
