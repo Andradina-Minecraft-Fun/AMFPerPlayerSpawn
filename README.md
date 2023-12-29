@@ -1,6 +1,6 @@
 # AMFPerPlayerSpawn
 
-This plugin gives you the ability to set spawn point for each player. Nice to servers that doesn't have a spawn area.
+This plugin gives you the ability to set spawn point for each player. Good for servers that don't have a spawn area.
 
 With this, every player will have your `/spawn` location
 
