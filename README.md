@@ -27,5 +27,6 @@ mvn compile && mvn package
 - [ ] Prefix for messages
 - [ ] On find new spawn point location, verify if this location are protected by `RedProtect` or `GriefPrevention`
 - [ ] Cooldown for `/spawn set` and `/spawn new`
+- [ ] Delay for `/spawn`
 - [ ] Give permission to set new spawn point in certain radius, configurable
 - [ ] Give permission to set new spawn point verticaly, configurable
