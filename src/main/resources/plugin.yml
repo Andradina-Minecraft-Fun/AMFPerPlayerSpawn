@@ -1,6 +1,6 @@
 name: AMFPerPlayerSpawn
 main: br.com.centralandradina.amfperplayerspawn.main
-version: 1.0
+version: 1.1
 api-version: 1.20
 
 commands:

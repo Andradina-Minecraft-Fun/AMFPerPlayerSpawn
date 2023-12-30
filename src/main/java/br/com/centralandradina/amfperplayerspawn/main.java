@@ -2,10 +2,11 @@ package br.com.centralandradina.amfperplayerspawn;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -19,12 +20,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class main extends JavaPlugin implements Listener
 {
-	public Location spawnLocation = null;
+	Map<String, Location> playerLocations = new HashMap<>();
 
 	@Override
 	public void onLoad() { }
@@ -47,7 +47,13 @@ public class main extends JavaPlugin implements Listener
 	@EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent event)
 	{
-		event.setRespawnLocation(this.spawnLocation);
+		Player player = event.getPlayer();
+		String uuid = player.getUniqueId().toString();
+
+		if(playerLocations.containsKey(uuid.toString())) {
+			Location location = playerLocations.get(uuid);
+			event.setRespawnLocation(location);
+		}
 	}
 
 	/**
@@ -59,24 +65,21 @@ public class main extends JavaPlugin implements Listener
 		Player player = event.getPlayer();
 		String playerName = player.getName();
 		UUID uuid = player.getUniqueId();
+		Location spawnLocation;
 
 		// verify if data player exists
 		File configFile = new File(this.getDataFolder(), uuid.toString() + ".yml");
 		if(!configFile.exists()) {
 			
-
 			// look for a new spawn area
-			Location location = newSpawnLocation(player.getWorld());
-			getLogger().info("Found location for " + playerName + " at " + location.getX() + ", " + location.getY() + ", " + location.getZ());
-
-			// get location
-			this.spawnLocation = new Location(location.getWorld(), location.getX()+0.5, location.getY()+0.5, location.getZ()+0.5);
+			spawnLocation = newSpawnLocation(player.getWorld());
+			getLogger().info("Found location for " + playerName + " at " + spawnLocation.getX() + ", " + spawnLocation.getY() + ", " + spawnLocation.getZ());
 
 			// save the location for next login
-			saveConfigFile(uuid, this.spawnLocation);
+			saveConfigFile(uuid, spawnLocation);
 
 			// teleport user to the new spaw
-			player.teleport(this.spawnLocation);
+			player.teleport(spawnLocation);
 		}
 		else {
 
@@ -87,9 +90,12 @@ public class main extends JavaPlugin implements Listener
 			World  world = getServer().getWorld(config.getString("spawn.world"));
 			
 			// get location
-			this.spawnLocation = new Location(world, config.getInt("spawn.x")+0.5, config.getInt("spawn.y")+0.5, config.getInt("spawn.z")+0.5);
+			spawnLocation = new Location(world, config.getInt("spawn.x")+0.5, config.getInt("spawn.y"), config.getInt("spawn.z")+0.5);
 
 		}
+
+		// save the player location on array
+		playerLocations.put(uuid.toString(), spawnLocation);
 
 	}
 
@@ -144,7 +150,7 @@ public class main extends JavaPlugin implements Listener
 			}
 			else if(world.getBlockAt(posX, posY, posZ).getType() != Material.AIR) {
 				posY++; // back to the previous block position
-				return new Location(world, posX, posY, posZ);
+				return new Location(world, posX+0.5, posY, posZ+0.5);
 			}
 
 			posY--;
@@ -183,8 +189,18 @@ public class main extends JavaPlugin implements Listener
     				return false;
 				}
 
+				
 				// teleport player
-				player.teleport(this.spawnLocation);
+				String uuid = player.getUniqueId().toString();
+				if(playerLocations.containsKey(uuid.toString())) {
+					Location location = playerLocations.get(uuid);
+					player.teleport(location);
+				}
+				else {
+					sender.sendMessage("I cannot find your spawn point!");
+    				return false;
+				}
+				
     			return false;
     		}
 			else {
@@ -226,17 +242,18 @@ public class main extends JavaPlugin implements Listener
 		player.sendMessage("Finding new spawn location...");
 		
 		// get player location
-		Location location = newSpawnLocation(player.getWorld());
-		getLogger().info("Found location for " + player.getName() + " at " + location.getX() + ", " + location.getY() + ", " + location.getZ());
+		Location newLocation = newSpawnLocation(player.getWorld());
+		getLogger().info("Found location for " + player.getName() + " at " + newLocation.getX() + ", " + newLocation.getY() + ", " + newLocation.getZ());
 		
-		// rewrite location to the middle of block
-		this.spawnLocation = new Location(location.getWorld(), ((int)location.getX())+0.5, ((int)location.getY())+0.5, ((int)location.getZ())+0.5);
-
 		// save config file with the new location
-		saveConfigFile(player.getUniqueId(), this.spawnLocation);
+		saveConfigFile(player.getUniqueId(), newLocation);
+
+		// add the new location to map
+		String uuid = player.getUniqueId().toString();
+		playerLocations.put(uuid, newLocation);
 
 		// teleport player
-		player.teleport(this.spawnLocation);
+		player.teleport(newLocation);
 		
 		// warning player
 		player.sendMessage("New spawn defined");
@@ -265,10 +282,14 @@ public class main extends JavaPlugin implements Listener
 		}
 
 		// rewrite location to the middle of block
-		this.spawnLocation = new Location(location.getWorld(), ((int)location.getX())+0.5, ((int)location.getY())+0.5, ((int)location.getZ())+0.5);
+		Location newLocation = new Location(location.getWorld(), ((int)location.getX())+0.5, ((int)location.getY()), ((int)location.getZ())+0.5);
 
 		// save config file with the new location
-		saveConfigFile(player.getUniqueId(), this.spawnLocation);
+		saveConfigFile(player.getUniqueId(), newLocation);
+
+		// add the new location to map
+		String uuid = player.getUniqueId().toString();
+		playerLocations.put(uuid, newLocation);
 
 		// warning player
 		player.sendMessage("New spawn defined");
