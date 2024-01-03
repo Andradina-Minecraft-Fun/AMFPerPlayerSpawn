@@ -26,6 +26,8 @@ public class main extends JavaPlugin implements Listener
 {
 	Map<String, Location> playerLocations = new HashMap<>();
 
+	FileConfiguration config = getConfig();
+
 	@Override
 	public void onLoad() { }
 
@@ -33,6 +35,12 @@ public class main extends JavaPlugin implements Listener
 	public void onEnable()
 	{
 		getServer().getPluginManager().registerEvents(this, this);
+
+		getLogger().info("Reading config");
+		this.config.addDefault("maxX", 6000);
+		this.config.addDefault("maxZ", 6000);
+		this.config.options().copyDefaults(true);
+		saveConfig();
 
 		getLogger().info("AMFPerPlayerSpawn enabled");
 	}
@@ -132,8 +140,8 @@ public class main extends JavaPlugin implements Listener
 		
 		// world max size 
 		// @todo add this size to a config file
-		int maxX = 10000;
-		int maxZ = 10000;
+		int maxX = this.config.getInt("maxX");
+		int maxZ = this.config.getInt("maxZ");;
 
 		// random location
 		Random r = new Random();
